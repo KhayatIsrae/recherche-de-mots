@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <limits>
+#include <algorithm>
 
 using namespace std::chrono;
 using namespace std;
@@ -134,6 +135,41 @@ string ont_ss_ch_commune(string mot1, string mot2){
     return res;
 }
 
+vector<string> plus_longue_ss_fichier(string nom_fichier){
+    ifstream f(nom_fichier);
+    if(!f){
+        cout << "Erreur : impossible d'ouvrir " << nom_fichier << endl;
+        return vector<string>();
+    }
+    vector<string> fichier,mots;
+    vector<string> res(3); //[0]=la sous chaine/[1]=mot1/[2]=mot2
+    string courant;
+    while(f >> courant)
+        fichier.push_back(courant);        // on stocke chaque mot
+    f.close();
+
+    for(size_t i = 0; i < fichier.size(); i++){
+        if(find(mots.begin(), mots.end(),fichier[i]) != mots.end())
+            continue;                       // on a déjà traité ce mot
+        else{
+            mots.push_back(fichier[i]);
+            for(size_t j = i + 1; j < fichier.size(); j++){
+                if(fichier[i] == fichier[j])
+                    continue;
+                string ss = ont_ss_ch_commune(fichier[i], fichier[j]);
+                if(ss.length() > res[0].length()){
+                    res[0] = ss;
+                    res[1]= fichier[i];
+                    res[2]= fichier[j];
+                }
+            }
+        }
+    }
+    return res;
+}
+
+
+
 
 int main()
 {
@@ -158,7 +194,7 @@ int main()
     string nom_fichier, mot;
     cout << "entrez le nom du fichier: ";
     cin >> nom_fichier;
-    cout << "entrez le mot a chercher: ";
+    /*cout << "entrez le mot a chercher: ";
     cin >> mot;
     cout<<"entre le mot a remplacer (laisser vide si pas de remplacement): ";
     cin.ignore(numeric_limits<streamsize>::max(), '\n');   // vide le reste de la ligne
@@ -171,6 +207,16 @@ int main()
     if(nb >= 0)
         cout << "le mot " << mot << " apparait " << nb << " fois dans le fichier " << nom_fichier << endl;
     cout << "temps d'execution: " << duration.count() << " microsecondes" << endl;
-    
+    */
+    auto start = high_resolution_clock::now();
+    vector<string> res = plus_longue_ss_fichier(nom_fichier);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(stop - start);
+    if (res.size() == 3) {
+        cout << "Sous-chaine commune : " << res[0] << endl;
+        cout << "Premier mot : " << res[1] << endl;
+        cout << "Deuxieme mot : " << res[2] << endl;
+    }
+    cout << "temps d'execution: " << duration.count() << " microsecondes" << endl;
     return 0;
 }
