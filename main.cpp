@@ -2,6 +2,9 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
+#include <vector>
+#include <limits>
+
 using namespace std::chrono;
 using namespace std;
 
@@ -31,6 +34,7 @@ int comparer_chaines(string ch1,string ch2){
     return 0;
 }
 
+//chercher un mot complet dans le fichier
 int chercher_mot(string nom_fichier, string mot){
     ifstream f(nom_fichier);
     if(!f){
@@ -46,7 +50,7 @@ int chercher_mot(string nom_fichier, string mot){
     f.close();
     return nb;
 }
-
+ //chercher un mot dans le fichier en utilisant la fonction find(sous chaines aussi)
 int chercher_mot_find(string nom_fichier, string mot)
 {
     ifstream f(nom_fichier);
@@ -79,8 +83,7 @@ int chercher_mot_find(string nom_fichier, string mot)
     return nb;
 }
 
-#include <vector>
-
+//chercher un mot en utilisant les vecters, on peut aussi remplacer le mot par un autre
 int chercher_mot_vector(string nom_fichier, string mot, string remp="")
 {
     ifstream f(nom_fichier);
@@ -100,20 +103,35 @@ int chercher_mot_vector(string nom_fichier, string mot, string remp="")
     for(vector<string>::iterator it = mots.begin(); it != mots.end(); ++it){
         if((position = (*it).find(mot, position)) != string::npos){
             nb++;
-            position=0; // réinitialiser la position pour le prochain mot
             if(remp != "")
                 *it = remp;               // remplacement dans le vecteur
         }
+        position=0;
     }
 
-    /*if(remp != ""){                       // réécriture du fichier
+    if(remp != ""){                       // réécriture du fichier
         ofstream out(nom_fichier);
         for(vector<string>::iterator it = mots.begin(); it != mots.end(); ++it)
             out << *it << " ";
     }
-    */
+    
 
     return nb;
+}
+
+string ont_ss_ch_commune(string mot1, string mot2){
+    string res;                                   // meilleure sous-chaîne trouvée
+    for(size_t i = 0; i < mot1.length(); i++){
+        for(size_t j = 0; j < mot2.length(); j++){
+            size_t k = 0;                         // longueur de la suite commune
+            while(i + k < mot1.length() && j + k < mot2.length()
+                  && mot1[i + k] == mot2[j + k])
+                k++;
+            if(k > res.length())
+                res = mot1.substr(i, k);          // nouvelle plus longue
+        }
+    }
+    return res;
 }
 
 
@@ -143,8 +161,9 @@ int main()
     cout << "entrez le mot a chercher: ";
     cin >> mot;
     cout<<"entre le mot a remplacer (laisser vide si pas de remplacement): ";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');   // vide le reste de la ligne
     string remp;
-    cin >> remp;
+    getline(cin, remp);
     auto start = high_resolution_clock::now();
     int nb = chercher_mot_vector(nom_fichier, mot, remp);
     auto stop = high_resolution_clock::now();
@@ -152,6 +171,6 @@ int main()
     if(nb >= 0)
         cout << "le mot " << mot << " apparait " << nb << " fois dans le fichier " << nom_fichier << endl;
     cout << "temps d'execution: " << duration.count() << " microsecondes" << endl;
+    
     return 0;
-
 }
